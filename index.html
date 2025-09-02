@@ -1,0 +1,132 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Daily Savings Tracker</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <link rel="stylesheet" href="style.css" />
+    
+  </head>
+  <body>
+    <div class="login-container" id="login-container">
+      <header>
+        <h1>Daily Savings Tracker</h1>
+        <h2 class="language">አቆወ ጀን ኢትነ ዳን ጀን ዋርት <img class="img_1" src="./waving-hand-svgrepo-com.svg" alt=""></h2>
+        <h3>ጤና ይስጥልኝ እንካን ደህና መጣችሁ <img class="img_1" src="./waving-hand-svgrepo-com.svg" alt=""></h3>
+        <p>Please login to track your savings</p>
+      </header>
+      
+      <div class="login-form">
+        <input type="email" id="login-email" placeholder="Email address">
+        <input type="password" id="login-password" placeholder="Password">
+        <button class="login-btn" id="login-btn">Login</button>
+      </div>
+      
+      <p>Don't have an account? <a href="#" id="show-register">Register here</a></p>
+    </div>
+
+    <div class="container hidden" id="app-container">
+      <div class="user-section">
+        <div>
+          <h3>Welcome, <span id="user-name">User</span>!</h3>
+          <p>Track your daily savings and progress toward your financial goals</p>
+        </div>
+        <button class="logout-btn" id="logout-btn">Logout</button>
+      </div>
+
+      <nav class="nav-menu">
+        <button class="hamburger-menu" id="hamburger-menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        
+        <ul class="nav-links" id="nav-links">
+          <li><a href="#" id="nav-summary">Summary</a></li>
+          <li><a href="#" id="nav-export">Export Data</a></li>
+          <li><a href="#" id="nav-settings">Settings</a></li>
+          <li><a href="#" id="nav-help">Help</a></li>
+        </ul>
+      </nav>
+
+      <header>
+        <h1>Daily Savings Tracker</h1>
+        <h2 class="language">አቆወ ጀን ኢትነ ዳን ጅን ዋርት <img class="img_1" src="./waving-hand-svgrepo-com.svg" alt=""></h2>
+      </header>
+
+      <div class="alarm-section">
+        <h3>Set Daily Reminder</h3>
+        <div class="alarm-controls">
+          <label for="alarm-time">Remind me at:</label>
+          <input type="time" id="alarm-time" value="20:00">
+          <button id="set-alarm-btn">Set Reminder</button>
+          <button id="test-alarm-btn">Test Reminder</button>
+        </div>
+      </div>
+
+      <div class="summary">
+        <div class="summary-card">
+          <h3>Total Target</h3>
+          <p id="total-target">$0.00</p>
+        </div>
+        <div class="summary-card">
+          <h3>Total Saved</h3>
+          <p id="total-saved">$0.00</p>
+        </div>
+        <div class="summary-card">
+          <h3>Progress</h3>
+          <p id="progress-percent">0%</p>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="control-group">
+          <label for="daily-target">Daily Target:</label>
+          <input
+            type="number"
+            id="daily-target"
+            min="0"
+            step="0.01"
+            value="147"
+          />
+        </div>
+        <div class="control-group">
+          <label for="start-date">Start Date:</label>
+          <input type="date" id="start-date" />
+        </div>
+        <div class="control-group">
+          <button id="generate-btn">Generate Plan</button>
+        </div>
+      </div>
+      
+      <div class="export-section">
+        <button id="export-pdf-btn" class="export-btn">Export to PDF</button>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Day</th>
+              <th>Target</th>
+              <th>Saved?</th>
+              <th>Actual</th>
+              <th>Cumulative</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody id="savings-table">
+            <!-- Table rows will be generated here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+<script src="script.js"></script>
+
+  </body>
+</html>
