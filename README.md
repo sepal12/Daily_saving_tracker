@@ -1,0 +1,1 @@
+This app will help users in track their saving journey thought out monthly and it has those feautures like target amount (set by user), check box ☑ to make day as saved , actual saved amount (update when checkbox is chcked) and cumulative total(automatically calculated) and Notes field for each day.
