@@ -1,0 +1,595 @@
+
+      document.addEventListener("DOMContentLoaded", function () {
+        // Initialize jsPDF
+        const { jsPDF } = window.jspdf;
+        
+        // DOM Elements
+        const loginContainer = document.getElementById('login-container');
+        const appContainer = document.getElementById('app-container');
+        const loginBtn = document.getElementById('login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const showRegisterBtn = document.getElementById('show-register');
+        const setAlarmBtn = document.getElementById('set-alarm-btn');
+        const testAlarmBtn = document.getElementById('test-alarm-btn');
+        const exportPdfBtn = document.getElementById('export-pdf-btn');
+        const userNameSpan = document.getElementById('user-name');
+        const hamburgerMenu = document.getElementById('hamburger-menu');
+        const navLinks = document.getElementById('nav-links');
+        
+        // Check if user is logged in
+        const isLoggedIn = localStorage.getItem('savingsUserLoggedIn') === 'true';
+        
+        if (isLoggedIn) {
+          const userData = JSON.parse(localStorage.getItem('savingsUserData') || '{}');
+          userNameSpan.textContent = userData.name || 'User';
+          showApp();
+        }
+        
+        // Hamburger menu toggle
+        hamburgerMenu.addEventListener('click', function() {
+          navLinks.classList.toggle('active');
+        });
+        
+        // Login functionality
+        loginBtn.addEventListener('click', function() {
+          const email = document.getElementById('login-email').value;
+          const password = document.getElementById('login-password').value;
+          
+          if (email && password) {
+            // In a real app, this would verify credentials with a server
+            const userData = {
+              email: email,
+              name: email.split('@')[0] // Simple name extraction from email
+            };
+            
+            localStorage.setItem('savingsUserLoggedIn', 'true');
+            localStorage.setItem('savingsUserData', JSON.stringify(userData));
+            
+            userNameSpan.textContent = userData.name;
+            showApp();
+            showNotification('Login successful!');
+          } else {
+            showNotification('Please enter both email and password');
+          }
+        });
+        
+        // Logout functionality
+        logoutBtn.addEventListener('click', function() {
+          localStorage.setItem('savingsUserLoggedIn', 'false');
+          showLogin();
+          showNotification('Logged out successfully');
+        });
+        
+        // Show register form (simplified)
+        showRegisterBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          showNotification('Registration would be implemented in a real app');
+        });
+        
+        // PDF Export functionality
+        exportPdfBtn.addEventListener('click', function() {
+          generatePDF();
+        });
+        
+        // Navigation links
+        document.getElementById('nav-summary').addEventListener('click', function(e) {
+          e.preventDefault();
+          document.querySelector('.summary').scrollIntoView({ behavior: 'smooth' });
+          navLinks.classList.remove('active');
+        });
+        
+        document.getElementById('nav-export').addEventListener('click', function(e) {
+          e.preventDefault();
+          document.querySelector('.export-section').scrollIntoView({ behavior: 'smooth' });
+          navLinks.classList.remove('active');
+        });
+        
+        // Show/hide functions
+        function showApp() {
+          loginContainer.classList.add('hidden');
+          appContainer.classList.remove('hidden');
+          initializeApp();
+        }
+        
+        function showLogin() {
+          appContainer.classList.add('hidden');
+          loginContainer.classList.remove('hidden');
+        }
+        
+        // Notification function
+        function showNotification(message) {
+          const notification = document.createElement('div');
+          notification.className = 'notification';
+          notification.textContent = message;
+          document.body.appendChild(notification);
+          
+          setTimeout(() => {
+            notification.remove();
+          }, 3000);
+        }
+        
+        // PDF Generation function
+        function generatePDF() {
+          const doc = new jsPDF();
+          
+          // Add title
+          doc.setFontSize(20);
+          doc.setTextColor(40, 40, 40);
+          doc.text("Daily Savings Tracker", 105, 15, { align: "center" });
+          
+          // Add date
+          doc.setFontSize(12);
+          doc.setTextColor(100, 100, 100);
+          doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 105, 22, { align: "center" });
+          
+          // Add summary section
+          doc.setFontSize(14);
+          doc.setTextColor(40, 40, 40);
+          doc.text("Summary", 14, 35);
+          
+          // Add summary values
+          const totalTarget = document.getElementById('total-target').textContent;
+          const totalSaved = document.getElementById('total-saved').textContent;
+          const progress = document.getElementById('progress-percent').textContent;
+          
+          doc.setFontSize(12);
+          doc.text(`Total Target: ${totalTarget}`, 14, 45);
+          doc.text(`Total Saved: ${totalSaved}`, 14, 55);
+          doc.text(`Progress: ${progress}`, 14, 65);
+          
+          // Add table
+          doc.setFontSize(14);
+          doc.setTextColor(40, 40, 40);
+          doc.text("Savings Details", 14, 80);
+          
+          // Prepare table data
+          const tableColumn = ["Date", "Day", "Target", "Saved", "Actual", "Cumulative", "Notes"];
+          const tableRows = [];
+          
+          const rows = document.querySelectorAll('#savings-table tr');
+          rows.forEach(row => {
+            const rowData = [];
+            const cols = row.querySelectorAll('td');
+            
+            if (cols.length >= 7) {
+              // Date
+              rowData.push(cols[0].textContent);
+              
+              // Day
+              rowData.push(cols[1].textContent);
+              
+              // Target
+              rowData.push(cols[2].textContent);
+              
+              // Saved
+              const savedCheckbox = cols[3].querySelector('input[type="checkbox"]');
+              rowData.push(savedCheckbox.checked ? 'Yes' : 'No');
+              
+              // Actual
+              rowData.push(cols[4].textContent);
+              
+              // Cumulative
+              rowData.push(cols[5].textContent);
+              
+              // Notes
+              const notesInput = cols[6].querySelector('input[type="text"]');
+              rowData.push(notesInput.value);
+              
+              tableRows.push(rowData);
+            }
+          });
+          
+          // Generate the PDF table
+          doc.autoTable({
+            head: [tableColumn],
+            body: tableRows,
+            startY: 85,
+            theme: 'grid',
+            styles: {
+              fontSize: 10,
+              cellPadding: 3,
+              overflow: 'linebreak'
+            },
+            headStyles: {
+              fillColor: [52, 152, 219],
+              textColor: [255, 255, 255],
+              fontStyle: 'bold'
+            },
+            alternateRowStyles: {
+              fillColor: [240, 240, 240]
+            }
+          });
+          
+          // Add footer with page numbers
+          const pageCount = doc.internal.getNumberOfPages();
+          for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setFontSize(10);
+            doc.setTextColor(100, 100, 100);
+            doc.text(`Page ${i} of ${pageCount}`, 105, doc.internal.pageSize.height - 10, { align: "center" });
+          }
+          
+          // Save the PDF
+          doc.save('savings-tracker-report.pdf');
+          showNotification('PDF exported successfully!');
+        }
+        
+        // Alarm/reminder functionality
+        let alarmInterval = null;
+        
+        setAlarmBtn.addEventListener('click', function() {
+          const alarmTime = document.getElementById('alarm-time').value;
+          
+          if (alarmTime) {
+            // Clear any existing alarm
+            if (alarmInterval) {
+              clearInterval(alarmInterval);
+            }
+            
+            // Save alarm time to localStorage
+            localStorage.setItem('savingsAlarmTime', alarmTime);
+            
+            // Set new alarm check interval
+            alarmInterval = setInterval(function() {
+              checkAlarm(alarmTime);
+            }, 60000); // Check every minute
+            
+            showNotification(`Daily reminder set for ${formatTime(alarmTime)}`);
+          }
+        });
+        
+        testAlarmBtn.addEventListener('click', function() {
+          triggerAlarm();
+        });
+        
+        function checkAlarm(alarmTime) {
+          const now = new Date();
+          const currentTime = formatTime(now);
+          
+          if (currentTime === alarmTime) {
+            triggerAlarm();
+          }
+        }
+        
+        function triggerAlarm() {
+          // Check if the browser supports notifications
+          if (!("Notification" in window)) {
+            showNotification("This browser does not support notifications");
+            return;
+          }
+          
+          // Request permission if not already granted
+          if (Notification.permission === "default") {
+            Notification.requestPermission().then(permission => {
+              if (permission === "granted") {
+                createNotification();
+              }
+            });
+          } else if (Notification.permission === "granted") {
+            createNotification();
+          }
+          
+          // Also show an in-app notification
+          showNotification("Reminder: Don't forget to save today! 💰");
+        }
+        
+        function createNotification() {
+          const notification = new Notification("Daily Savings Reminder", {
+            body: "Don't forget to save today! Track your progress in the Daily Savings Tracker.",
+            icon: "./waving-hand-svgrepo-com.svg" // Would be a real icon in production
+          });
+          
+          setTimeout(() => {
+            notification.close();
+          }, 5000);
+        }
+        
+        function formatTime(date) {
+          if (typeof date === 'string') {
+            return date; // Already in HH:MM format
+          }
+          
+          const hours = date.getHours().toString().padStart(2, '0');
+          const minutes = date.getMinutes().toString().padStart(2, '0');
+          return `${hours}:${minutes}`;
+        }
+        
+        // Load saved alarm time if exists
+        const savedAlarmTime = localStorage.getItem('savingsAlarmTime');
+        if (savedAlarmTime) {
+          document.getElementById('alarm-time').value = savedAlarmTime;
+        }
+        
+        // Original app functionality with persistence
+        function initializeApp() {
+          // Set default start date to today
+          const today = new Date();
+          const formattedDate = today.toISOString().split("T")[0];
+          document.getElementById("start-date").value = formattedDate;
+
+          // Load saved data if available
+          const savedData = localStorage.getItem('savingsData');
+          let dailyTarget = parseFloat(document.getElementById("daily-target").value) || 0;
+          let startDate = document.getElementById("start-date").value;
+
+          if (savedData) {
+            const data = JSON.parse(savedData);
+            dailyTarget = data.dailyTarget || dailyTarget;
+            startDate = data.startDate || startDate;
+            
+            document.getElementById("daily-target").value = dailyTarget;
+            document.getElementById("start-date").value = startDate;
+          }
+
+          // Generate the initial plan
+          generatePlan();
+
+          // If we have saved data, load it
+          if (savedData) {
+            loadSavedData(JSON.parse(savedData));
+          }
+
+          // Event listeners
+          document
+            .getElementById("generate-btn")
+            .addEventListener("click", generatePlan);
+          document
+            .getElementById("daily-target")
+            .addEventListener("change", function() {
+              generatePlan();
+              saveData();
+            });
+          document
+            .getElementById("start-date")
+            .addEventListener("change", function() {
+              generatePlan();
+              saveData();
+            });
+
+          function generatePlan() {
+            const dailyTarget =
+              parseFloat(document.getElementById("daily-target").value) || 0;
+            const startDateValue = document.getElementById("start-date").value;
+            const startDate = new Date(startDateValue);
+            const tableBody = document.getElementById("savings-table");
+
+            // Clear existing rows
+            tableBody.innerHTML = "";
+
+            let cumulative = 0;
+            let totalTarget = 0;
+            let totalSaved = 0;
+
+            // Generate 30 days of savings plan
+            for (let i = 0; i < 30; i++) {
+              const currentDate = new Date(startDate);
+              currentDate.setDate(startDate.getDate() + i);
+
+              const dateStr = formatDate(currentDate);
+              const dayStr = formatDay(currentDate.getDay());
+
+              const row = document.createElement("tr");
+
+              // Date cell
+              const dateCell = document.createElement("td");
+              dateCell.textContent = dateStr;
+              row.appendChild(dateCell);
+
+              // Day cell
+              const dayCell = document.createElement("td");
+              dayCell.textContent = dayStr;
+              row.appendChild(dayCell);
+
+              // Target cell
+              const targetCell = document.createElement("td");
+              targetCell.textContent = `$${dailyTarget.toFixed(2)}`;
+              row.appendChild(targetCell);
+
+              // Saved checkbox cell
+              const savedCell = document.createElement("td");
+              const checkbox = document.createElement("input");
+              checkbox.type = "checkbox";
+              checkbox.classList.add("saved-checkbox");
+              checkbox.dataset.index = i;
+              checkbox.addEventListener("change", function () {
+                updateActual(this, dailyTarget);
+                updateSummary();
+                saveData();
+              });
+              savedCell.appendChild(checkbox);
+              row.appendChild(savedCell);
+
+              // Actual cell
+              const actualCell = document.createElement("td");
+              actualCell.textContent = "$0.00";
+              actualCell.id = `actual-${i}`;
+              row.appendChild(actualCell);
+
+              // Cumulative cell
+              const cumulativeCell = document.createElement("td");
+              cumulativeCell.textContent = "$0.00";
+              cumulativeCell.id = `cumulative-${i}`;
+              row.appendChild(cumulativeCell);
+
+              // Notes cell
+              const notesCell = document.createElement("td");
+              const notesInput = document.createElement("input");
+              notesInput.type = "text";
+              notesInput.classList.add("notes");
+              notesInput.placeholder = "Add notes...";
+              notesInput.dataset.index = i;
+              notesInput.addEventListener("input", saveData);
+              notesCell.appendChild(notesInput);
+              row.appendChild(notesCell);
+
+              tableBody.appendChild(row);
+
+              totalTarget += dailyTarget;
+            }
+
+            // Update summary
+            document.getElementById(
+              "total-target"
+            ).textContent = `$${totalTarget.toFixed(2)}`;
+            updateSummary();
+            
+            // Save data after generating plan
+            saveData();
+          }
+
+          function formatDate(date) {
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+            const year = date.getFullYear();
+            return `${month}/${day}/${year}`;
+          }
+
+          function formatDay(dayIndex) {
+            const days = [
+              "Sunday",
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday",
+            ];
+            return days[dayIndex];
+          }
+
+          function updateActual(checkbox, dailyTarget) {
+            const row = checkbox.parentNode.parentNode;
+            const actualCell = row.querySelector("td:nth-child(5)");
+            const cumulativeCell = row.querySelector("td:nth-child(6)");
+
+            if (checkbox.checked) {
+              actualCell.textContent = `$${dailyTarget.toFixed(2)}`;
+
+              // Calculate cumulative
+              let prevCumulative = 0;
+              const prevRow = row.previousElementSibling;
+              if (prevRow) {
+                const prevCumulativeText =
+                  prevRow.querySelector("td:nth-child(6)").textContent;
+                prevCumulative =
+                  parseFloat(prevCumulativeText.replace("$", "")) || 0;
+              }
+
+              const newCumulative = prevCumulative + dailyTarget;
+              cumulativeCell.textContent = `$${newCumulative.toFixed(2)}`;
+
+              // Update subsequent cumulative values
+              updateSubsequentCumulative(row, newCumulative);
+            } else {
+              actualCell.textContent = "$0.00";
+
+              // Reset cumulative for this row and subsequent rows
+              const prevRow = row.previousElementSibling;
+              const prevCumulative = prevRow
+                ? parseFloat(
+                    prevRow
+                      .querySelector("td:nth-child(6)")
+                      .textContent.replace("$", "")
+                  ) || 0
+                : 0;
+
+              cumulativeCell.textContent = `$${prevCumulative.toFixed(2)}`;
+              updateSubsequentCumulative(row, prevCumulative);
+            }
+          }
+
+          function updateSubsequentCumulative(startRow, baseCumulative) {
+            let currentCumulative = baseCumulative;
+            let nextRow = startRow.nextElementSibling;
+
+            while (nextRow) {
+              const actualText =
+                nextRow.querySelector("td:nth-child(5)").textContent;
+              const actual = parseFloat(actualText.replace("$", "")) || 0;
+
+              currentCumulative += actual;
+              nextRow.querySelector(
+                "td:nth-child(6)"
+              ).textContent = `$${currentCumulative.toFixed(2)}`;
+
+              nextRow = nextRow.nextElementSibling;
+            }
+          }
+
+          function updateSummary() {
+            const rows = document.querySelectorAll("#savings-table tr");
+            let totalTarget = 0;
+            let totalSaved = 0;
+
+            rows.forEach((row) => {
+              const targetText = row.querySelector("td:nth-child(3)").textContent;
+              const actualText = row.querySelector("td:nth-child(5)").textContent;
+
+              totalTarget += parseFloat(targetText.replace("$", "")) || 0;
+              totalSaved += parseFloat(actualText.replace("$", "")) || 0;
+            });
+
+            document.getElementById(
+              "total-target"
+            ).textContent = `$${totalTarget.toFixed(2)}`;
+            document.getElementById(
+              "total-saved"
+            ).textContent = `$${totalSaved.toFixed(2)}`;
+
+            const progressPercent =
+              totalTarget > 0 ? (totalSaved / totalTarget) * 100 : 0;
+            document.getElementById(
+              "progress-percent"
+            ).textContent = `${progressPercent.toFixed(1)}%`;
+          }
+          
+          // Save data to localStorage
+          function saveData() {
+            const data = {
+              dailyTarget: parseFloat(document.getElementById("daily-target").value) || 0,
+              startDate: document.getElementById("start-date").value,
+              checkboxes: [],
+              notes: []
+            };
+            
+            // Save checkbox states
+            const checkboxes = document.querySelectorAll('.saved-checkbox');
+            checkboxes.forEach(checkbox => {
+              data.checkboxes.push(checkbox.checked);
+            });
+            
+            // Save notes
+            const notesInputs = document.querySelectorAll('.notes');
+            notesInputs.forEach(input => {
+              data.notes.push(input.value);
+            });
+            
+            localStorage.setItem('savingsData', JSON.stringify(data));
+          }
+          
+          // Load saved data
+          function loadSavedData(data) {
+            // Set checkboxes
+            const checkboxes = document.querySelectorAll('.saved-checkbox');
+            checkboxes.forEach((checkbox, index) => {
+              if (data.checkboxes && data.checkboxes[index]) {
+                checkbox.checked = data.checkboxes[index];
+                // Trigger change to update actual and cumulative values
+                const event = new Event('change');
+                checkbox.dispatchEvent(event);
+              }
+            });
+            
+            // Set notes
+            const notesInputs = document.querySelectorAll('.notes');
+            notesInputs.forEach((input, index) => {
+              if (data.notes && data.notes[index]) {
+                input.value = data.notes[index];
+              }
+            });
+            
+            updateSummary();
+          }
+        }
+      });
+    
