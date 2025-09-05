@@ -1,18 +1,18 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Daily Savings Tracker</title>
+    <title> Saving Tracker</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <link rel="stylesheet" href="style.css" />
     
-  </head>
+  </head> 
   <body>
     <div class="login-container" id="login-container">
       <header>
-        <h1>Daily Savings Tracker</h1>
+        <h1> Saving Tracker</h1>
         <h2 class="language">አቆወ ጀን ኢትነ ዳን ጀን ዋርት <img class="img_1" src="./waving-hand-svgrepo-com.svg" alt=""></h2>
         <h3>ጤና ይስጥልኝ እንካን ደህና መጣችሁ <img class="img_1" src="./waving-hand-svgrepo-com.svg" alt=""></h3>
         <p>Please login to track your savings</p>
@@ -31,7 +31,7 @@
       <div class="user-section">
         <div>
           <h3>Welcome, <span id="user-name">User</span>!</h3>
-          <p>Track your daily savings and progress toward your financial goals</p>
+          <p>Track your savings and progress toward your financial goals</p>
         </div>
         <button class="logout-btn" id="logout-btn">Logout</button>
       </div>
@@ -52,15 +52,20 @@
       </nav>
 
       <header>
-        <h1>Daily Savings Tracker</h1>
+        <h1>Daily/Weekly Savings Tracker</h1>
         <h2 class="language">አቆወ ጀን ኢትነ ዳን ጅን ዋርት <img class="img_1" src="./waving-hand-svgrepo-com.svg" alt=""></h2>
       </header>
 
       <div class="alarm-section">
-        <h3>Set Daily Reminder</h3>
+        <h3>Set Reminder</h3>
         <div class="alarm-controls">
           <label for="alarm-time">Remind me at:</label>
           <input type="time" id="alarm-time" value="20:00">
+          <label for="alarm-frequency">Frequency:</label>
+          <select id="alarm-frequency">
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+          </select>
           <button id="set-alarm-btn">Set Reminder</button>
           <button id="test-alarm-btn">Test Reminder</button>
         </div>
@@ -82,8 +87,20 @@
       </div>
 
       <div class="controls">
+        <div class="frequency-selector">
+          <label>Tracking Frequency:</label>
+          <div class="frequency-option">
+            <input type="radio" id="frequency-daily" name="frequency" value="daily" checked>
+            <label for="frequency-daily">Daily</label>
+          </div>
+          <div class="frequency-option">
+            <input type="radio" id="frequency-weekly" name="frequency" value="weekly">
+            <label for="frequency-weekly">Weekly</label>
+          </div>
+        </div>
+        
         <div class="control-group">
-          <label for="daily-target">Daily Target:</label>
+          <label for="daily-target" id="target-label">Daily Target:</label>
           <input
             type="number"
             id="daily-target"
@@ -97,6 +114,15 @@
           <input type="date" id="start-date" />
         </div>
         <div class="control-group">
+          <label for="duration">Duration (weeks):</label>
+          <input
+            type="number"
+            id="duration"
+            min="1"
+            value="4"
+          />
+        </div>
+        <div class="control-group">
           <button id="generate-btn">Generate Plan</button>
         </div>
       </div>
@@ -107,7 +133,7 @@
 
       <div class="table-container">
         <table>
-          <thead>
+          <thead id="table-header">
             <tr>
               <th>Date</th>
               <th>Day</th>
@@ -124,6 +150,7 @@
         </table>
       </div>
     </div>
+<script src="script.js"></script>
 
   </body>
 </html>

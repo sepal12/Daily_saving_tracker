@@ -1,595 +1,923 @@
+document.addEventListener("DOMContentLoaded", function () {
+  // Initialize jsPDF
+  const { jsPDF } = window.jspdf;
 
-      document.addEventListener("DOMContentLoaded", function () {
-        // Initialize jsPDF
-        const { jsPDF } = window.jspdf;
-        
-        // DOM Elements
-        const loginContainer = document.getElementById('login-container');
-        const appContainer = document.getElementById('app-container');
-        const loginBtn = document.getElementById('login-btn');
-        const logoutBtn = document.getElementById('logout-btn');
-        const showRegisterBtn = document.getElementById('show-register');
-        const setAlarmBtn = document.getElementById('set-alarm-btn');
-        const testAlarmBtn = document.getElementById('test-alarm-btn');
-        const exportPdfBtn = document.getElementById('export-pdf-btn');
-        const userNameSpan = document.getElementById('user-name');
-        const hamburgerMenu = document.getElementById('hamburger-menu');
-        const navLinks = document.getElementById('nav-links');
-        
-        // Check if user is logged in
-        const isLoggedIn = localStorage.getItem('savingsUserLoggedIn') === 'true';
-        
-        if (isLoggedIn) {
-          const userData = JSON.parse(localStorage.getItem('savingsUserData') || '{}');
-          userNameSpan.textContent = userData.name || 'User';
-          showApp();
+  // DOM Elements
+  const loginContainer = document.getElementById("login-container");
+  const appContainer = document.getElementById("app-container");
+  const loginBtn = document.getElementById("login-btn");
+  const logoutBtn = document.getElementById("logout-btn");
+  const showRegisterBtn = document.getElementById("show-register");
+  const setAlarmBtn = document.getElementById("set-alarm-btn");
+  const testAlarmBtn = document.getElementById("test-alarm-btn");
+  const exportPdfBtn = document.getElementById("export-pdf-btn");
+  const userNameSpan = document.getElementById("user-name");
+  const hamburgerMenu = document.getElementById("hamburger-menu");
+  const navLinks = document.getElementById("nav-links");
+  const frequencyDaily = document.getElementById("frequency-daily");
+  const frequencyWeekly = document.getElementById("frequency-weekly");
+  const targetLabel = document.getElementById("target-label");
+  const tableHeader = document.getElementById("table-header");
+  const durationInput = document.getElementById("duration");
+
+  // Check if user is logged in
+  const isLoggedIn = localStorage.getItem("savingsUserLoggedIn") === "true";
+
+  if (isLoggedIn) {
+    const userData = JSON.parse(
+      localStorage.getItem("savingsUserData") || "{}"
+    );
+    userNameSpan.textContent = userData.name || "User";
+    showApp();
+  }
+
+  // Hamburger menu toggle
+  hamburgerMenu.addEventListener("click", function () {
+    navLinks.classList.toggle("active");
+  });
+
+  // Frequency change handler
+  frequencyDaily.addEventListener("change", updateFrequency);
+  frequencyWeekly.addEventListener("change", updateFrequency);
+
+  function updateFrequency() {
+    if (frequencyDaily.checked) {
+      targetLabel.textContent = "Daily Target:";
+      durationInput.value = 4; // 4 weeks for daily plan
+    } else {
+      targetLabel.textContent = "Weekly Target:";
+      durationInput.value = 12; // 12 weeks for weekly plan
+    }
+    updateTableHeaders();
+  }
+
+  function updateTableHeaders() {
+    if (frequencyDaily.checked) {
+      tableHeader.innerHTML = `
+              <tr>
+                <th>Date</th>
+                <th>Day</th>
+                <th>Target</th>
+                <th>Saved?</th>
+                <th>Actual</th>
+                <th>Cumulative</th>
+                <th>Notes</th>
+              </tr>
+            `;
+    } else {
+      tableHeader.innerHTML = `
+              <tr>
+                <th>Week</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Target</th>
+                <th>Saved?</th>
+                <th>Actual</th>
+                <th>Cumulative</th>
+                <th>Notes</th>
+              </tr>
+            `;
+    }
+  }
+
+  // Login functionality
+  loginBtn.addEventListener("click", function () {
+    const email = document.getElementById("login-email").value;
+    const password = document.getElementById("login-password").value;
+
+    if (email && password) {
+      // In a real app, this would verify credentials with a server
+      const userData = {
+        email: email,
+        name: email.split("@")[0], // Simple name extraction from email
+      };
+
+      localStorage.setItem("savingsUserLoggedIn", "true");
+      localStorage.setItem("savingsUserData", JSON.stringify(userData));
+
+      userNameSpan.textContent = userData.name;
+      showApp();
+      showNotification("Login successful!");
+    } else {
+      showNotification("Please enter both email and password");
+    }
+  });
+
+  // Logout functionality
+  logoutBtn.addEventListener("click", function () {
+    localStorage.setItem("savingsUserLoggedIn", "false");
+    showLogin();
+    showNotification("Logged out successfully");
+  });
+
+  // Show register form (simplified)
+  showRegisterBtn.addEventListener("click", function (e) {
+    e.preventDefault();
+    showNotification("Registration would be implemented in a real app");
+  });
+
+  // PDF Export functionality
+  exportPdfBtn.addEventListener("click", function () {
+    generatePDF();
+  });
+
+  // Navigation links
+  document
+    .getElementById("nav-summary")
+    .addEventListener("click", function (e) {
+      e.preventDefault();
+      document.querySelector(".summary").scrollIntoView({ behavior: "smooth" });
+      navLinks.classList.remove("active");
+    });
+
+  document.getElementById("nav-export").addEventListener("click", function (e) {
+    e.preventDefault();
+    document
+      .querySelector(".export-section")
+      .scrollIntoView({ behavior: "smooth" });
+    navLinks.classList.remove("active");
+  });
+
+  // Show/hide functions
+  function showApp() {
+    loginContainer.classList.add("hidden");
+    appContainer.classList.remove("hidden");
+    initializeApp();
+  }
+
+  function showLogin() {
+    appContainer.classList.add("hidden");
+    loginContainer.classList.remove("hidden");
+  }
+
+  // Notification function
+  function showNotification(message) {
+    const notification = document.createElement("div");
+    notification.className = "notification";
+    notification.textContent = message;
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+      notification.remove();
+    }, 3000);
+  }
+
+  // PDF Generation function
+  function generatePDF() {
+    const isWeekly = frequencyWeekly.checked;
+    const doc = new jsPDF();
+
+    // Add title
+    doc.setFontSize(20);
+    doc.setTextColor(40, 40, 40);
+    doc.text(`${isWeekly ? "Weekly" : "Daily"} Savings Tracker`, 105, 15, {
+      align: "center",
+    });
+
+    // Add date
+    doc.setFontSize(12);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 105, 22, {
+      align: "center",
+    });
+
+    // Add summary section
+    doc.setFontSize(14);
+    doc.setTextColor(40, 40, 40);
+    doc.text("Summary", 14, 35);
+
+    // Add summary values
+    const totalTarget = document.getElementById("total-target").textContent;
+    const totalSaved = document.getElementById("total-saved").textContent;
+    const progress = document.getElementById("progress-percent").textContent;
+
+    doc.setFontSize(12);
+    doc.text(`Total Target: ${totalTarget}`, 14, 45);
+    doc.text(`Total Saved: ${totalSaved}`, 14, 55);
+    doc.text(`Progress: ${progress}`, 14, 65);
+
+    // Add table
+    doc.setFontSize(14);
+    doc.setTextColor(40, 40, 40);
+    doc.text("Savings Details", 14, 80);
+
+    // Prepare table data
+    let tableColumn, tableRows;
+
+    if (isWeekly) {
+      tableColumn = [
+        "Week",
+        "Start Date",
+        "End Date",
+        "Target",
+        "Saved",
+        "Actual",
+        "Cumulative",
+        "Notes",
+      ];
+      tableRows = [];
+
+      const rows = document.querySelectorAll("#savings-table tr");
+      rows.forEach((row) => {
+        const rowData = [];
+        const cols = row.querySelectorAll("td");
+
+        if (cols.length >= 8) {
+          // Week
+          rowData.push(cols[0].textContent);
+
+          // Start Date
+          rowData.push(cols[1].textContent);
+
+          // End Date
+          rowData.push(cols[2].textContent);
+
+          // Target
+          rowData.push(cols[3].textContent);
+
+          // Saved
+          const savedCheckbox = cols[4].querySelector('input[type="checkbox"]');
+          rowData.push(savedCheckbox.checked ? "Yes" : "No");
+
+          // Actual
+          rowData.push(cols[5].textContent);
+
+          // Cumulative
+          rowData.push(cols[6].textContent);
+
+          // Notes
+          const notesInput = cols[7].querySelector('input[type="text"]');
+          rowData.push(notesInput.value);
+
+          tableRows.push(rowData);
         }
-        
-        // Hamburger menu toggle
-        hamburgerMenu.addEventListener('click', function() {
-          navLinks.classList.toggle('active');
-        });
-        
-        // Login functionality
-        loginBtn.addEventListener('click', function() {
-          const email = document.getElementById('login-email').value;
-          const password = document.getElementById('login-password').value;
-          
-          if (email && password) {
-            // In a real app, this would verify credentials with a server
-            const userData = {
-              email: email,
-              name: email.split('@')[0] // Simple name extraction from email
-            };
-            
-            localStorage.setItem('savingsUserLoggedIn', 'true');
-            localStorage.setItem('savingsUserData', JSON.stringify(userData));
-            
-            userNameSpan.textContent = userData.name;
-            showApp();
-            showNotification('Login successful!');
-          } else {
-            showNotification('Please enter both email and password');
-          }
-        });
-        
-        // Logout functionality
-        logoutBtn.addEventListener('click', function() {
-          localStorage.setItem('savingsUserLoggedIn', 'false');
-          showLogin();
-          showNotification('Logged out successfully');
-        });
-        
-        // Show register form (simplified)
-        showRegisterBtn.addEventListener('click', function(e) {
-          e.preventDefault();
-          showNotification('Registration would be implemented in a real app');
-        });
-        
-        // PDF Export functionality
-        exportPdfBtn.addEventListener('click', function() {
-          generatePDF();
-        });
-        
-        // Navigation links
-        document.getElementById('nav-summary').addEventListener('click', function(e) {
-          e.preventDefault();
-          document.querySelector('.summary').scrollIntoView({ behavior: 'smooth' });
-          navLinks.classList.remove('active');
-        });
-        
-        document.getElementById('nav-export').addEventListener('click', function(e) {
-          e.preventDefault();
-          document.querySelector('.export-section').scrollIntoView({ behavior: 'smooth' });
-          navLinks.classList.remove('active');
-        });
-        
-        // Show/hide functions
-        function showApp() {
-          loginContainer.classList.add('hidden');
-          appContainer.classList.remove('hidden');
-          initializeApp();
+      });
+    } else {
+      tableColumn = [
+        "Date",
+        "Day",
+        "Target",
+        "Saved",
+        "Actual",
+        "Cumulative",
+        "Notes",
+      ];
+      tableRows = [];
+
+      const rows = document.querySelectorAll("#savings-table tr");
+      rows.forEach((row) => {
+        const rowData = [];
+        const cols = row.querySelectorAll("td");
+
+        if (cols.length >= 7) {
+          // Date
+          rowData.push(cols[0].textContent);
+
+          // Day
+          rowData.push(cols[1].textContent);
+
+          // Target
+          rowData.push(cols[2].textContent);
+
+          // Saved
+          const savedCheckbox = cols[3].querySelector('input[type="checkbox"]');
+          rowData.push(savedCheckbox.checked ? "Yes" : "No");
+
+          // Actual
+          rowData.push(cols[4].textContent);
+
+          // Cumulative
+          rowData.push(cols[5].textContent);
+
+          // Notes
+          const notesInput = cols[6].querySelector('input[type="text"]');
+          rowData.push(notesInput.value);
+
+          tableRows.push(rowData);
         }
-        
-        function showLogin() {
-          appContainer.classList.add('hidden');
-          loginContainer.classList.remove('hidden');
+      });
+    }
+
+    // Generate the PDF table
+    doc.autoTable({
+      head: [tableColumn],
+      body: tableRows,
+      startY: 85,
+      theme: "grid",
+      styles: {
+        fontSize: 10,
+        cellPadding: 3,
+        overflow: "linebreak",
+      },
+      headStyles: {
+        fillColor: [52, 152, 219],
+        textColor: [255, 255, 255],
+        fontStyle: "bold",
+      },
+      alternateRowStyles: {
+        fillColor: [240, 240, 240],
+      },
+    });
+
+    // Add footer with page numbers
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      doc.text(
+        `Page ${i} of ${pageCount}`,
+        105,
+        doc.internal.pageSize.height - 10,
+        { align: "center" }
+      );
+    }
+
+    // Save the PDF
+    doc.save("savings-tracker-report.pdf");
+    showNotification("PDF exported successfully!");
+  }
+
+  // Alarm/reminder functionality
+  let alarmInterval = null;
+
+  setAlarmBtn.addEventListener("click", function () {
+    const alarmTime = document.getElementById("alarm-time").value;
+    const alarmFrequency = document.getElementById("alarm-frequency").value;
+
+    if (alarmTime) {
+      // Clear any existing alarm
+      if (alarmInterval) {
+        clearInterval(alarmInterval);
+      }
+
+      // Save alarm time to localStorage
+      localStorage.setItem("savingsAlarmTime", alarmTime);
+      localStorage.setItem("savingsAlarmFrequency", alarmFrequency);
+
+      // Set new alarm check interval
+      alarmInterval = setInterval(function () {
+        checkAlarm(alarmTime, alarmFrequency);
+      }, 60000); // Check every minute
+
+      showNotification(
+        `Reminder set for ${formatTime(alarmTime)} (${alarmFrequency})`
+      );
+    }
+  });
+
+  testAlarmBtn.addEventListener("click", function () {
+    triggerAlarm();
+  });
+
+  function checkAlarm(alarmTime, alarmFrequency) {
+    const now = new Date();
+    const currentTime = formatTime(now);
+
+    if (currentTime === alarmTime) {
+      // Check if it's the right day for the frequency
+      const dayOfWeek = now.getDay(); // 0 = Sunday, 6 = Saturday
+      const shouldTrigger =
+        alarmFrequency === "daily" ||
+        (alarmFrequency === "weekly" && dayOfWeek === 0); // Sunday
+
+      if (shouldTrigger) {
+        triggerAlarm();
+      }
+    }
+  }
+
+  function triggerAlarm() {
+    // Check if the browser supports notifications
+    if (!("Notification" in window)) {
+      showNotification("This browser does not support notifications");
+      return;
+    }
+
+    // Request permission if not already granted
+    if (Notification.permission === "default") {
+      Notification.requestPermission().then((permission) => {
+        if (permission === "granted") {
+          createNotification();
         }
-        
-        // Notification function
-        function showNotification(message) {
-          const notification = document.createElement('div');
-          notification.className = 'notification';
-          notification.textContent = message;
-          document.body.appendChild(notification);
-          
-          setTimeout(() => {
-            notification.remove();
-          }, 3000);
-        }
-        
-        // PDF Generation function
-        function generatePDF() {
-          const doc = new jsPDF();
-          
-          // Add title
-          doc.setFontSize(20);
-          doc.setTextColor(40, 40, 40);
-          doc.text("Daily Savings Tracker", 105, 15, { align: "center" });
-          
-          // Add date
-          doc.setFontSize(12);
-          doc.setTextColor(100, 100, 100);
-          doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 105, 22, { align: "center" });
-          
-          // Add summary section
-          doc.setFontSize(14);
-          doc.setTextColor(40, 40, 40);
-          doc.text("Summary", 14, 35);
-          
-          // Add summary values
-          const totalTarget = document.getElementById('total-target').textContent;
-          const totalSaved = document.getElementById('total-saved').textContent;
-          const progress = document.getElementById('progress-percent').textContent;
-          
-          doc.setFontSize(12);
-          doc.text(`Total Target: ${totalTarget}`, 14, 45);
-          doc.text(`Total Saved: ${totalSaved}`, 14, 55);
-          doc.text(`Progress: ${progress}`, 14, 65);
-          
-          // Add table
-          doc.setFontSize(14);
-          doc.setTextColor(40, 40, 40);
-          doc.text("Savings Details", 14, 80);
-          
-          // Prepare table data
-          const tableColumn = ["Date", "Day", "Target", "Saved", "Actual", "Cumulative", "Notes"];
-          const tableRows = [];
-          
-          const rows = document.querySelectorAll('#savings-table tr');
-          rows.forEach(row => {
-            const rowData = [];
-            const cols = row.querySelectorAll('td');
-            
-            if (cols.length >= 7) {
-              // Date
-              rowData.push(cols[0].textContent);
-              
-              // Day
-              rowData.push(cols[1].textContent);
-              
-              // Target
-              rowData.push(cols[2].textContent);
-              
-              // Saved
-              const savedCheckbox = cols[3].querySelector('input[type="checkbox"]');
-              rowData.push(savedCheckbox.checked ? 'Yes' : 'No');
-              
-              // Actual
-              rowData.push(cols[4].textContent);
-              
-              // Cumulative
-              rowData.push(cols[5].textContent);
-              
-              // Notes
-              const notesInput = cols[6].querySelector('input[type="text"]');
-              rowData.push(notesInput.value);
-              
-              tableRows.push(rowData);
-            }
-          });
-          
-          // Generate the PDF table
-          doc.autoTable({
-            head: [tableColumn],
-            body: tableRows,
-            startY: 85,
-            theme: 'grid',
-            styles: {
-              fontSize: 10,
-              cellPadding: 3,
-              overflow: 'linebreak'
-            },
-            headStyles: {
-              fillColor: [52, 152, 219],
-              textColor: [255, 255, 255],
-              fontStyle: 'bold'
-            },
-            alternateRowStyles: {
-              fillColor: [240, 240, 240]
-            }
-          });
-          
-          // Add footer with page numbers
-          const pageCount = doc.internal.getNumberOfPages();
-          for (let i = 1; i <= pageCount; i++) {
-            doc.setPage(i);
-            doc.setFontSize(10);
-            doc.setTextColor(100, 100, 100);
-            doc.text(`Page ${i} of ${pageCount}`, 105, doc.internal.pageSize.height - 10, { align: "center" });
-          }
-          
-          // Save the PDF
-          doc.save('savings-tracker-report.pdf');
-          showNotification('PDF exported successfully!');
-        }
-        
-        // Alarm/reminder functionality
-        let alarmInterval = null;
-        
-        setAlarmBtn.addEventListener('click', function() {
-          const alarmTime = document.getElementById('alarm-time').value;
-          
-          if (alarmTime) {
-            // Clear any existing alarm
-            if (alarmInterval) {
-              clearInterval(alarmInterval);
-            }
-            
-            // Save alarm time to localStorage
-            localStorage.setItem('savingsAlarmTime', alarmTime);
-            
-            // Set new alarm check interval
-            alarmInterval = setInterval(function() {
-              checkAlarm(alarmTime);
-            }, 60000); // Check every minute
-            
-            showNotification(`Daily reminder set for ${formatTime(alarmTime)}`);
-          }
-        });
-        
-        testAlarmBtn.addEventListener('click', function() {
-          triggerAlarm();
-        });
-        
-        function checkAlarm(alarmTime) {
-          const now = new Date();
-          const currentTime = formatTime(now);
-          
-          if (currentTime === alarmTime) {
-            triggerAlarm();
-          }
-        }
-        
-        function triggerAlarm() {
-          // Check if the browser supports notifications
-          if (!("Notification" in window)) {
-            showNotification("This browser does not support notifications");
-            return;
-          }
-          
-          // Request permission if not already granted
-          if (Notification.permission === "default") {
-            Notification.requestPermission().then(permission => {
-              if (permission === "granted") {
-                createNotification();
-              }
-            });
-          } else if (Notification.permission === "granted") {
-            createNotification();
-          }
-          
-          // Also show an in-app notification
-          showNotification("Reminder: Don't forget to save today! 💰");
-        }
-        
-        function createNotification() {
-          const notification = new Notification("Daily Savings Reminder", {
-            body: "Don't forget to save today! Track your progress in the Daily Savings Tracker.",
-            icon: "./waving-hand-svgrepo-com.svg" // Would be a real icon in production
-          });
-          
-          setTimeout(() => {
-            notification.close();
-          }, 5000);
-        }
-        
-        function formatTime(date) {
-          if (typeof date === 'string') {
-            return date; // Already in HH:MM format
-          }
-          
-          const hours = date.getHours().toString().padStart(2, '0');
-          const minutes = date.getMinutes().toString().padStart(2, '0');
-          return `${hours}:${minutes}`;
-        }
-        
-        // Load saved alarm time if exists
-        const savedAlarmTime = localStorage.getItem('savingsAlarmTime');
-        if (savedAlarmTime) {
-          document.getElementById('alarm-time').value = savedAlarmTime;
-        }
-        
-        // Original app functionality with persistence
-        function initializeApp() {
-          // Set default start date to today
-          const today = new Date();
-          const formattedDate = today.toISOString().split("T")[0];
-          document.getElementById("start-date").value = formattedDate;
+      });
+    } else if (Notification.permission === "granted") {
+      createNotification();
+    }
 
-          // Load saved data if available
-          const savedData = localStorage.getItem('savingsData');
-          let dailyTarget = parseFloat(document.getElementById("daily-target").value) || 0;
-          let startDate = document.getElementById("start-date").value;
+    // Also show an in-app notification
+    const frequency = frequencyWeekly.checked ? "weekly" : "daily";
+    showNotification(
+      `Reminder: Don't forget to save this ${
+        frequency === "weekly" ? "week" : "today"
+      }! 💰`
+    );
+  }
 
-          if (savedData) {
-            const data = JSON.parse(savedData);
-            dailyTarget = data.dailyTarget || dailyTarget;
-            startDate = data.startDate || startDate;
-            
-            document.getElementById("daily-target").value = dailyTarget;
-            document.getElementById("start-date").value = startDate;
-          }
+  function createNotification() {
+    const frequency = frequencyWeekly.checked ? "weekly" : "daily";
+    const notification = new Notification("Savings Reminder", {
+      body: `Don't forget to save this ${
+        frequency === "weekly" ? "week" : "today"
+      }! Track your progress in the Savings Tracker.`,
+      icon: "./waving-hand-svgrepo-com.svg", // Would be a real icon in production
+    });
 
-          // Generate the initial plan
-          generatePlan();
+    setTimeout(() => {
+      notification.close();
+    }, 5000);
+  }
 
-          // If we have saved data, load it
-          if (savedData) {
-            loadSavedData(JSON.parse(savedData));
-          }
+  function formatTime(date) {
+    if (typeof date === "string") {
+      return date; // Already in HH:MM format
+    }
 
-          // Event listeners
-          document
-            .getElementById("generate-btn")
-            .addEventListener("click", generatePlan);
-          document
-            .getElementById("daily-target")
-            .addEventListener("change", function() {
-              generatePlan();
-              saveData();
-            });
-          document
-            .getElementById("start-date")
-            .addEventListener("change", function() {
-              generatePlan();
-              saveData();
-            });
+    const hours = date.getHours().toString().padStart(2, "0");
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+    return `${hours}:${minutes}`;
+  }
 
-          function generatePlan() {
-            const dailyTarget =
-              parseFloat(document.getElementById("daily-target").value) || 0;
-            const startDateValue = document.getElementById("start-date").value;
-            const startDate = new Date(startDateValue);
-            const tableBody = document.getElementById("savings-table");
+  // Load saved alarm time if exists
+  const savedAlarmTime = localStorage.getItem("savingsAlarmTime");
+  const savedAlarmFrequency = localStorage.getItem("savingsAlarmFrequency");
+  if (savedAlarmTime) {
+    document.getElementById("alarm-time").value = savedAlarmTime;
+  }
+  if (savedAlarmFrequency) {
+    document.getElementById("alarm-frequency").value = savedAlarmFrequency;
+  }
 
-            // Clear existing rows
-            tableBody.innerHTML = "";
+  // Original app functionality with persistence
+  function initializeApp() {
+    // Set default start date to today
+    const today = new Date();
+    const formattedDate = today.toISOString().split("T")[0];
+    document.getElementById("start-date").value = formattedDate;
 
-            let cumulative = 0;
-            let totalTarget = 0;
-            let totalSaved = 0;
+    // Load saved data if available
+    const savedData = localStorage.getItem("savingsData");
+    let dailyTarget =
+      parseFloat(document.getElementById("daily-target").value) || 0;
+    let startDate = document.getElementById("start-date").value;
+    let duration = parseInt(document.getElementById("duration").value) || 4;
+    let frequency = localStorage.getItem("savingsFrequency") || "daily";
 
-            // Generate 30 days of savings plan
-            for (let i = 0; i < 30; i++) {
-              const currentDate = new Date(startDate);
-              currentDate.setDate(startDate.getDate() + i);
+    if (savedData) {
+      const data = JSON.parse(savedData);
+      dailyTarget = data.dailyTarget || dailyTarget;
+      startDate = data.startDate || startDate;
+      duration = data.duration || duration;
+      frequency = data.frequency || frequency;
 
-              const dateStr = formatDate(currentDate);
-              const dayStr = formatDay(currentDate.getDay());
+      document.getElementById("daily-target").value = dailyTarget;
+      document.getElementById("start-date").value = startDate;
+      document.getElementById("duration").value = duration;
 
-              const row = document.createElement("tr");
+      if (frequency === "weekly") {
+        frequencyWeekly.checked = true;
+        frequencyDaily.checked = false;
+        targetLabel.textContent = "Weekly Target:";
+      } else {
+        frequencyDaily.checked = true;
+        frequencyWeekly.checked = false;
+        targetLabel.textContent = "Daily Target:";
+      }
 
-              // Date cell
-              const dateCell = document.createElement("td");
-              dateCell.textContent = dateStr;
-              row.appendChild(dateCell);
+      updateTableHeaders();
+    }
 
-              // Day cell
-              const dayCell = document.createElement("td");
-              dayCell.textContent = dayStr;
-              row.appendChild(dayCell);
+    // Generate the initial plan
+    generatePlan();
 
-              // Target cell
-              const targetCell = document.createElement("td");
-              targetCell.textContent = `$${dailyTarget.toFixed(2)}`;
-              row.appendChild(targetCell);
+    // If we have saved data, load it
+    if (savedData) {
+      loadSavedData(JSON.parse(savedData));
+    }
 
-              // Saved checkbox cell
-              const savedCell = document.createElement("td");
-              const checkbox = document.createElement("input");
-              checkbox.type = "checkbox";
-              checkbox.classList.add("saved-checkbox");
-              checkbox.dataset.index = i;
-              checkbox.addEventListener("change", function () {
-                updateActual(this, dailyTarget);
-                updateSummary();
-                saveData();
-              });
-              savedCell.appendChild(checkbox);
-              row.appendChild(savedCell);
+    // Event listeners
+    document
+      .getElementById("generate-btn")
+      .addEventListener("click", generatePlan);
+    document
+      .getElementById("daily-target")
+      .addEventListener("change", function () {
+        generatePlan();
+        saveData();
+      });
+    document
+      .getElementById("start-date")
+      .addEventListener("change", function () {
+        generatePlan();
+        saveData();
+      });
+    document.getElementById("duration").addEventListener("change", function () {
+      generatePlan();
+      saveData();
+    });
 
-              // Actual cell
-              const actualCell = document.createElement("td");
-              actualCell.textContent = "$0.00";
-              actualCell.id = `actual-${i}`;
-              row.appendChild(actualCell);
+    function generatePlan() {
+      const isWeekly = frequencyWeekly.checked;
+      const dailyTarget =
+        parseFloat(document.getElementById("daily-target").value) || 0;
+      const startDateValue = document.getElementById("start-date").value;
+      const duration = parseInt(document.getElementById("duration").value) || 4;
+      const startDate = new Date(startDateValue);
+      const tableBody = document.getElementById("savings-table");
 
-              // Cumulative cell
-              const cumulativeCell = document.createElement("td");
-              cumulativeCell.textContent = "$0.00";
-              cumulativeCell.id = `cumulative-${i}`;
-              row.appendChild(cumulativeCell);
+      // Clear existing rows
+      tableBody.innerHTML = "";
 
-              // Notes cell
-              const notesCell = document.createElement("td");
-              const notesInput = document.createElement("input");
-              notesInput.type = "text";
-              notesInput.classList.add("notes");
-              notesInput.placeholder = "Add notes...";
-              notesInput.dataset.index = i;
-              notesInput.addEventListener("input", saveData);
-              notesCell.appendChild(notesInput);
-              row.appendChild(notesCell);
+      let cumulative = 0;
+      let totalTarget = 0;
+      let totalSaved = 0;
 
-              tableBody.appendChild(row);
+      if (isWeekly) {
+        // Generate weekly plan
+        for (let week = 1; week <= duration; week++) {
+          const weekStartDate = new Date(startDate);
+          weekStartDate.setDate(startDate.getDate() + (week - 1) * 7);
 
-              totalTarget += dailyTarget;
-            }
+          const weekEndDate = new Date(weekStartDate);
+          weekEndDate.setDate(weekStartDate.getDate() + 6);
 
-            // Update summary
-            document.getElementById(
-              "total-target"
-            ).textContent = `$${totalTarget.toFixed(2)}`;
-            updateSummary();
-            
-            // Save data after generating plan
+          const weekStartStr = formatDate(weekStartDate);
+          const weekEndStr = formatDate(weekEndDate);
+          const weeklyTarget = dailyTarget;
+
+          const row = document.createElement("tr");
+
+          // Week cell
+          const weekCell = document.createElement("td");
+          weekCell.textContent = week;
+          row.appendChild(weekCell);
+
+          // Start Date cell
+          const startDateCell = document.createElement("td");
+          startDateCell.textContent = weekStartStr;
+          row.appendChild(startDateCell);
+
+          // End Date cell
+          const endDateCell = document.createElement("td");
+          endDateCell.textContent = weekEndStr;
+          row.appendChild(endDateCell);
+
+          // Target cell
+          const targetCell = document.createElement("td");
+          targetCell.textContent = `$${weeklyTarget.toFixed(2)}`;
+          row.appendChild(targetCell);
+
+          // Saved checkbox cell
+          const savedCell = document.createElement("td");
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.classList.add("saved-checkbox");
+          checkbox.dataset.index = week - 1;
+          checkbox.dataset.weekly = "true";
+          checkbox.addEventListener("change", function () {
+            updateActual(this, weeklyTarget, true);
+            updateSummary(true);
             saveData();
+          });
+          savedCell.appendChild(checkbox);
+          row.appendChild(savedCell);
+
+          // Actual cell
+          const actualCell = document.createElement("td");
+          actualCell.textContent = "$0.00";
+          actualCell.id = `actual-${week - 1}`;
+          actualCell.dataset.weekly = "true";
+          row.appendChild(actualCell);
+
+          // Cumulative cell
+          const cumulativeCell = document.createElement("td");
+          cumulativeCell.textContent = "$0.00";
+          cumulativeCell.id = `cumulative-${week - 1}`;
+          cumulativeCell.dataset.weekly = "true";
+          row.appendChild(cumulativeCell);
+
+          // Notes cell
+          const notesCell = document.createElement("td");
+          const notesInput = document.createElement("input");
+          notesInput.type = "text";
+          notesInput.classList.add("notes");
+          notesInput.placeholder = "Add notes...";
+          notesInput.dataset.index = week - 1;
+          notesInput.dataset.weekly = "true";
+          notesInput.addEventListener("input", saveData);
+          notesCell.appendChild(notesInput);
+          row.appendChild(notesCell);
+
+          tableBody.appendChild(row);
+
+          totalTarget += weeklyTarget;
+        }
+      } else {
+        // Generate daily plan
+        const totalDays = duration * 7; // Convert weeks to days
+        for (let i = 0; i < totalDays; i++) {
+          const currentDate = new Date(startDate);
+          currentDate.setDate(startDate.getDate() + i);
+
+          const dateStr = formatDate(currentDate);
+          const dayStr = formatDay(currentDate.getDay());
+
+          const row = document.createElement("tr");
+
+          // Date cell
+          const dateCell = document.createElement("td");
+          dateCell.textContent = dateStr;
+          row.appendChild(dateCell);
+
+          // Day cell
+          const dayCell = document.createElement("td");
+          dayCell.textContent = dayStr;
+          row.appendChild(dayCell);
+
+          // Target cell
+          const targetCell = document.createElement("td");
+          targetCell.textContent = `$${dailyTarget.toFixed(2)}`;
+          row.appendChild(targetCell);
+
+          // Saved checkbox cell
+          const savedCell = document.createElement("td");
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.classList.add("saved-checkbox");
+          checkbox.dataset.index = i;
+          checkbox.addEventListener("change", function () {
+            updateActual(this, dailyTarget, false);
+            updateSummary(false);
+            saveData();
+          });
+          savedCell.appendChild(checkbox);
+          row.appendChild(savedCell);
+
+          // Actual cell
+          const actualCell = document.createElement("td");
+          actualCell.textContent = "$0.00";
+          actualCell.id = `actual-${i}`;
+          row.appendChild(actualCell);
+
+          // Cumulative cell
+          const cumulativeCell = document.createElement("td");
+          cumulativeCell.textContent = "$0.00";
+          cumulativeCell.id = `cumulative-${i}`;
+          row.appendChild(cumulativeCell);
+
+          // Notes cell
+          const notesCell = document.createElement("td");
+          const notesInput = document.createElement("input");
+          notesInput.type = "text";
+          notesInput.classList.add("notes");
+          notesInput.placeholder = "Add notes...";
+          notesInput.dataset.index = i;
+          notesInput.addEventListener("input", saveData);
+          notesCell.appendChild(notesInput);
+          row.appendChild(notesCell);
+
+          tableBody.appendChild(row);
+
+          totalTarget += dailyTarget;
+        }
+      }
+
+      // Update summary
+      document.getElementById(
+        "total-target"
+      ).textContent = `$${totalTarget.toFixed(2)}`;
+      updateSummary(isWeekly);
+
+      // Save data after generating plan
+      saveData();
+    }
+
+    function formatDate(date) {
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      const year = date.getFullYear();
+      return `${month}/${day}/${year}`;
+    }
+
+    function formatDay(dayIndex) {
+      const days = [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+      ];
+      return days[dayIndex];
+    }
+
+    function updateActual(checkbox, targetAmount, isWeekly) {
+      const row = checkbox.parentNode.parentNode;
+      let actualCell, cumulativeCell;
+
+      if (isWeekly) {
+        actualCell = row.querySelector("td:nth-child(6)");
+        cumulativeCell = row.querySelector("td:nth-child(7)");
+      } else {
+        actualCell = row.querySelector("td:nth-child(5)");
+        cumulativeCell = row.querySelector("td:nth-child(6)");
+      }
+
+      if (checkbox.checked) {
+        actualCell.textContent = `$${targetAmount.toFixed(2)}`;
+
+        // Calculate cumulative
+        let prevCumulative = 0;
+        const prevRow = row.previousElementSibling;
+        if (prevRow) {
+          const prevCumulativeText = isWeekly
+            ? prevRow.querySelector("td:nth-child(7)").textContent
+            : prevRow.querySelector("td:nth-child(6)").textContent;
+          prevCumulative = parseFloat(prevCumulativeText.replace("$", "")) || 0;
+        }
+
+        const newCumulative = prevCumulative + targetAmount;
+        cumulativeCell.textContent = `$${newCumulative.toFixed(2)}`;
+
+        // Update subsequent cumulative values
+        updateSubsequentCumulative(row, newCumulative, isWeekly);
+      } else {
+        actualCell.textContent = "$0.00";
+
+        // Reset cumulative for this row and subsequent rows
+        const prevRow = row.previousElementSibling;
+        let prevCumulative = 0;
+
+        if (prevRow) {
+          const prevCumulativeText = isWeekly
+            ? prevRow.querySelector("td:nth-child(7)").textContent
+            : prevRow.querySelector("td:nth-child(6)").textContent;
+          prevCumulative = parseFloat(prevCumulativeText.replace("$", "")) || 0;
+        }
+
+        cumulativeCell.textContent = `$${prevCumulative.toFixed(2)}`;
+        updateSubsequentCumulative(row, prevCumulative, isWeekly);
+      }
+    }
+
+    function updateSubsequentCumulative(startRow, baseCumulative, isWeekly) {
+      let currentCumulative = baseCumulative;
+      let nextRow = startRow.nextElementSibling;
+
+      while (nextRow) {
+        const actualText = isWeekly
+          ? nextRow.querySelector("td:nth-child(6)").textContent
+          : nextRow.querySelector("td:nth-child(5)").textContent;
+        const actual = parseFloat(actualText.replace("$", "")) || 0;
+
+        currentCumulative += actual;
+
+        const cumulativeCell = isWeekly
+          ? nextRow.querySelector("td:nth-child(7)")
+          : nextRow.querySelector("td:nth-child(6)");
+
+        cumulativeCell.textContent = `$${currentCumulative.toFixed(2)}`;
+
+        nextRow = nextRow.nextElementSibling;
+      }
+    }
+
+    function updateSummary(isWeekly) {
+      const rows = document.querySelectorAll("#savings-table tr");
+      let totalTarget = 0;
+      let totalSaved = 0;
+
+      rows.forEach((row) => {
+        let targetText, actualText;
+
+        if (isWeekly) {
+          targetText = row.querySelector("td:nth-child(4)").textContent;
+          actualText = row.querySelector("td:nth-child(6)").textContent;
+        } else {
+          targetText = row.querySelector("td:nth-child(3)").textContent;
+          actualText = row.querySelector("td:nth-child(5)").textContent;
+        }
+
+        totalTarget += parseFloat(targetText.replace("$", "")) || 0;
+        totalSaved += parseFloat(actualText.replace("$", "")) || 0;
+      });
+
+      document.getElementById(
+        "total-target"
+      ).textContent = `$${totalTarget.toFixed(2)}`;
+      document.getElementById(
+        "total-saved"
+      ).textContent = `$${totalSaved.toFixed(2)}`;
+
+      const progressPercent =
+        totalTarget > 0 ? (totalSaved / totalTarget) * 100 : 0;
+      document.getElementById(
+        "progress-percent"
+      ).textContent = `${progressPercent.toFixed(1)}%`;
+    }
+
+    // Save data to localStorage
+    function saveData() {
+      const isWeekly = frequencyWeekly.checked;
+      const data = {
+        frequency: isWeekly ? "weekly" : "daily",
+        dailyTarget:
+          parseFloat(document.getElementById("daily-target").value) || 0,
+        startDate: document.getElementById("start-date").value,
+        duration: parseInt(document.getElementById("duration").value) || 4,
+        checkboxes: [],
+        notes: [],
+      };
+
+      // Save checkbox states
+      const checkboxes = document.querySelectorAll(".saved-checkbox");
+      checkboxes.forEach((checkbox) => {
+        data.checkboxes.push(checkbox.checked);
+      });
+
+      // Save notes
+      const notesInputs = document.querySelectorAll(".notes");
+      notesInputs.forEach((input) => {
+        data.notes.push(input.value);
+      });
+
+      localStorage.setItem("savingsData", JSON.stringify(data));
+    }
+
+    // Load saved data
+    function loadSavedData(data) {
+      // Set checkboxes
+      const checkboxes = document.querySelectorAll(".saved-checkbox");
+      checkboxes.forEach((checkbox, index) => {
+        if (data.checkboxes && data.checkboxes[index]) {
+          checkbox.checked = data.checkboxes[index];
+          // Trigger change to update actual and cumulative values
+          const isWeekly = data.frequency === "weekly";
+          const targetAmount =
+            parseFloat(document.getElementById("daily-target").value) || 0;
+
+          const event = new Event("change");
+          // Store the parameters we need to pass to updateActual
+          checkbox.dispatchEvent(event);
+
+          // We need to manually call updateActual since we can't pass parameters with dispatchEvent
+          const row = checkbox.parentNode.parentNode;
+          let actualCell, cumulativeCell;
+
+          if (isWeekly) {
+            actualCell = row.querySelector("td:nth-child(6)");
+            cumulativeCell = row.querySelector("td:nth-child(7)");
+          } else {
+            actualCell = row.querySelector("td:nth-child(5)");
+            cumulativeCell = row.querySelector("td:nth-child(6)");
           }
 
-          function formatDate(date) {
-            const month = date.getMonth() + 1;
-            const day = date.getDate();
-            const year = date.getFullYear();
-            return `${month}/${day}/${year}`;
-          }
+          if (checkbox.checked) {
+            actualCell.textContent = `$${targetAmount.toFixed(2)}`;
 
-          function formatDay(dayIndex) {
-            const days = [
-              "Sunday",
-              "Monday",
-              "Tuesday",
-              "Wednesday",
-              "Thursday",
-              "Friday",
-              "Saturday",
-            ];
-            return days[dayIndex];
-          }
-
-          function updateActual(checkbox, dailyTarget) {
-            const row = checkbox.parentNode.parentNode;
-            const actualCell = row.querySelector("td:nth-child(5)");
-            const cumulativeCell = row.querySelector("td:nth-child(6)");
-
-            if (checkbox.checked) {
-              actualCell.textContent = `$${dailyTarget.toFixed(2)}`;
-
-              // Calculate cumulative
-              let prevCumulative = 0;
-              const prevRow = row.previousElementSibling;
-              if (prevRow) {
-                const prevCumulativeText =
-                  prevRow.querySelector("td:nth-child(6)").textContent;
-                prevCumulative =
-                  parseFloat(prevCumulativeText.replace("$", "")) || 0;
-              }
-
-              const newCumulative = prevCumulative + dailyTarget;
-              cumulativeCell.textContent = `$${newCumulative.toFixed(2)}`;
-
-              // Update subsequent cumulative values
-              updateSubsequentCumulative(row, newCumulative);
-            } else {
-              actualCell.textContent = "$0.00";
-
-              // Reset cumulative for this row and subsequent rows
-              const prevRow = row.previousElementSibling;
-              const prevCumulative = prevRow
-                ? parseFloat(
-                    prevRow
-                      .querySelector("td:nth-child(6)")
-                      .textContent.replace("$", "")
-                  ) || 0
-                : 0;
-
-              cumulativeCell.textContent = `$${prevCumulative.toFixed(2)}`;
-              updateSubsequentCumulative(row, prevCumulative);
+            // Calculate cumulative
+            let prevCumulative = 0;
+            const prevRow = row.previousElementSibling;
+            if (prevRow) {
+              const prevCumulativeText = isWeekly
+                ? prevRow.querySelector("td:nth-child(7)").textContent
+                : prevRow.querySelector("td:nth-child(6)").textContent;
+              prevCumulative =
+                parseFloat(prevCumulativeText.replace("$", "")) || 0;
             }
-          }
 
-          function updateSubsequentCumulative(startRow, baseCumulative) {
-            let currentCumulative = baseCumulative;
-            let nextRow = startRow.nextElementSibling;
+            const newCumulative = prevCumulative + targetAmount;
+            cumulativeCell.textContent = `$${newCumulative.toFixed(2)}`;
+          } else {
+            actualCell.textContent = "$0.00";
 
-            while (nextRow) {
-              const actualText =
-                nextRow.querySelector("td:nth-child(5)").textContent;
-              const actual = parseFloat(actualText.replace("$", "")) || 0;
+            // Reset cumulative for this row and subsequent rows
+            const prevRow = row.previousElementSibling;
+            let prevCumulative = 0;
 
-              currentCumulative += actual;
-              nextRow.querySelector(
-                "td:nth-child(6)"
-              ).textContent = `$${currentCumulative.toFixed(2)}`;
-
-              nextRow = nextRow.nextElementSibling;
+            if (prevRow) {
+              const prevCumulativeText = isWeekly
+                ? prevRow.querySelector("td:nth-child(7)").textContent
+                : prevRow.querySelector("td:nth-child(6)").textContent;
+              prevCumulative =
+                parseFloat(prevCumulativeText.replace("$", "")) || 0;
             }
-          }
 
-          function updateSummary() {
-            const rows = document.querySelectorAll("#savings-table tr");
-            let totalTarget = 0;
-            let totalSaved = 0;
-
-            rows.forEach((row) => {
-              const targetText = row.querySelector("td:nth-child(3)").textContent;
-              const actualText = row.querySelector("td:nth-child(5)").textContent;
-
-              totalTarget += parseFloat(targetText.replace("$", "")) || 0;
-              totalSaved += parseFloat(actualText.replace("$", "")) || 0;
-            });
-
-            document.getElementById(
-              "total-target"
-            ).textContent = `$${totalTarget.toFixed(2)}`;
-            document.getElementById(
-              "total-saved"
-            ).textContent = `$${totalSaved.toFixed(2)}`;
-
-            const progressPercent =
-              totalTarget > 0 ? (totalSaved / totalTarget) * 100 : 0;
-            document.getElementById(
-              "progress-percent"
-            ).textContent = `${progressPercent.toFixed(1)}%`;
-          }
-          
-          // Save data to localStorage
-          function saveData() {
-            const data = {
-              dailyTarget: parseFloat(document.getElementById("daily-target").value) || 0,
-              startDate: document.getElementById("start-date").value,
-              checkboxes: [],
-              notes: []
-            };
-            
-            // Save checkbox states
-            const checkboxes = document.querySelectorAll('.saved-checkbox');
-            checkboxes.forEach(checkbox => {
-              data.checkboxes.push(checkbox.checked);
-            });
-            
-            // Save notes
-            const notesInputs = document.querySelectorAll('.notes');
-            notesInputs.forEach(input => {
-              data.notes.push(input.value);
-            });
-            
-            localStorage.setItem('savingsData', JSON.stringify(data));
-          }
-          
-          // Load saved data
-          function loadSavedData(data) {
-            // Set checkboxes
-            const checkboxes = document.querySelectorAll('.saved-checkbox');
-            checkboxes.forEach((checkbox, index) => {
-              if (data.checkboxes && data.checkboxes[index]) {
-                checkbox.checked = data.checkboxes[index];
-                // Trigger change to update actual and cumulative values
-                const event = new Event('change');
-                checkbox.dispatchEvent(event);
-              }
-            });
-            
-            // Set notes
-            const notesInputs = document.querySelectorAll('.notes');
-            notesInputs.forEach((input, index) => {
-              if (data.notes && data.notes[index]) {
-                input.value = data.notes[index];
-              }
-            });
-            
-            updateSummary();
+            cumulativeCell.textContent = `$${prevCumulative.toFixed(2)}`;
           }
         }
       });
-    
+
+      // Set notes
+      const notesInputs = document.querySelectorAll(".notes");
+      notesInputs.forEach((input, index) => {
+        if (data.notes && data.notes[index]) {
+          input.value = data.notes[index];
+        }
+      });
+
+      updateSummary(data.frequency === "weekly");
+    }
+  }
+});
