@@ -1,8 +1,8 @@
- * {
+* {
         box-sizing: border-box;
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
       }
-
+      
       body {
         background-color: #f5f7fa;
         margin: 0;
@@ -100,11 +100,13 @@
         display: flex;
         align-items: center;
         margin: 10px;
+        flex-wrap: wrap;
       }
 
       label {
         margin-right: 10px;
         font-weight: bold;
+        min-width: 120px;
       }
 
       input[type="number"],
@@ -118,6 +120,7 @@
         border: 1px solid #ddd;
         border-radius: 4px;
         margin-right: 10px;
+        min-width: 150px;
       }
 
       button {
@@ -305,6 +308,9 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 20px;
+        padding: 10px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
       }
       
       .nav-links {
@@ -316,6 +322,7 @@
       
       .nav-links li {
         margin-left: 20px;
+        cursor: pointer;
       }
       
       .nav-links a {
@@ -325,6 +332,7 @@
         padding: 5px 10px;
         border-radius: 4px;
         transition: background-color 0.3s;
+        cursor: pointer;
       }
       
       .nav-links a:hover {
@@ -346,6 +354,7 @@
         display: flex;
         align-items: center;
         margin: 10px;
+        flex-wrap: wrap;
       }
       
       .frequency-option {
@@ -356,6 +365,180 @@
       
       .frequency-option input {
         margin-right: 5px;
+      }
+
+      /* Help section styles - MODIFIED TO APPEAR AS MODAL */
+      .help-section {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+        z-index: 1001;
+        width: 90%;
+        max-width: 700px;
+        max-height: 80vh;
+        overflow-y: auto;
+      }
+      
+      .help-section h2 {
+        color: #2c3e50;
+        margin-top: 0;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 10px;
+        text-align: left;
+      }
+      
+      .help-item {
+        margin: 15px 0;
+      }
+      
+      .help-item h3 {
+        color: #2980b9;
+        margin-bottom: 5px;
+      }
+      
+      .close-help {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: #e74c3c;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+      
+      /* Overlay for modal */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.7);
+        z-index: 1000;
+      }
+
+      /* FOOTER STYLES */
+      footer {
+        background-color: #2c3e50;
+        color: white;
+        padding: 30px 20px;
+        margin-top: 40px;
+        border-radius: 8px;
+      }
+
+      .footer-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+      }
+
+      .footer-section {
+        flex: 1;
+        min-width: 250px;
+        margin-bottom: 20px;
+        padding: 0 15px;
+      }
+
+      .footer-section h3 {
+        color: #2ecc71;
+        margin-bottom: 15px;
+        font-size: 18px;
+        border-bottom: 2px solid #2ecc71;
+        padding-bottom: 5px;
+        display: inline-block;
+      }
+
+      .footer-links {
+        list-style: none;
+        padding: 0;
+      }
+
+      .footer-links li {
+        margin-bottom: 10px;
+      }
+
+      .footer-links a {
+        color: #ecf0f1;
+        text-decoration: none;
+        transition: color 0.3s;
+        display: flex;
+        align-items: center;
+      }
+
+      .footer-links a i {
+        margin-right: 8px;
+        font-size: 14px;
+      }
+
+      .footer-links a:hover {
+        color: #2ecc71;
+      }
+
+      .footer-social {
+        display: flex;
+        gap: 15px;
+        margin-top: 15px;
+      }
+
+      .footer-social a {
+        color: white;
+        background-color: #34495e;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+        text-decoration: none;
+      }
+
+      .footer-social a:hover {
+        background-color: #2ecc71;
+        transform: translateY(-3px);
+      }
+
+      .footer-bottom {
+        max-width: 1200px;
+        margin: 20px auto 0;
+        padding-top: 20px;
+        border-top: 1px solid #34495e;
+        text-align: center;
+        font-size: 14px;
+      }
+
+      .footer-subscribe input {
+        padding: 10px;
+        border: none;
+        border-radius: 4px;
+        margin-right: 5px;
+        width: 70%;
+        margin-bottom: 10px;
+      }
+
+      .footer-subscribe button {
+        background-color: #2ecc71;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      .footer-subscribe button:hover {
+        background-color: #27ae60;
       }
 
       /* Media Queries for Responsiveness */
@@ -444,6 +627,35 @@
         .frequency-option {
           margin-bottom: 10px;
         }
+        
+        label {
+          min-width: 100px;
+        }
+        
+        input[type="number"],
+        input[type="date"],
+        input[type="time"],
+        input[type="text"],
+        input[type="password"],
+        input[type="email"],
+        select {
+          min-width: 120px;
+        }
+        
+        /* Responsive footer */
+        .footer-section {
+          flex: 100%;
+        }
+        
+        .footer-social {
+          justify-content: center;
+        }
+        
+        /* Help section responsive */
+        .help-section {
+          width: 95%;
+          padding: 20px;
+        }
       }
       
       @media (max-width: 480px) {
@@ -465,5 +677,23 @@
           left: 10px;
           right: 10px;
           top: 10px;
+        }
+        
+        .control-group {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+        
+        .alarm-controls {
+          gap: 5px;
+        }
+        
+        .footer-subscribe input {
+          width: 100%;
+          margin-right: 0;
+        }
+        
+        .help-section {
+          padding: 15px;
         }
       }

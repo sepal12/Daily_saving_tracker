@@ -23,15 +23,19 @@
         <p>Please login to track your savings</p>
       </header>
 
-      <div class="login-form">
-        <input type="email" id="login-email" placeholder="Email address" />
-        <input type="password" id="login-password" placeholder="Password" />
-        <button class="login-btn" id="login-btn">Login</button>
-      </div>
+      <form class="login-form" id="login-form">
+        <input type="text" id="first-name" placeholder="First Name" required />
+        <input type="text" id="last-name" placeholder="Last Name" required />
+        <input type="email" id="login-email" placeholder="Email address" required />
+        <input type="password" id="login-password" placeholder="Password" required />
+        <button type="submit" class="login-btn" id="login-btn">Login</button>
+      </form>
 
       <p>
         Don't have an account? <a href="#" id="show-register">Register here</a>
       </p>
+      
+      <!-- REMOVED FOOTER FROM LOGIN CONTAINER -->
     </div>
 
     <div class="container hidden" id="app-container">
@@ -53,7 +57,6 @@
         <ul class="nav-links" id="nav-links">
           <li><a href="#" id="nav-summary">Summary</a></li>
           <li><a href="#" id="nav-export">Export Data</a></li>
-          <li><a href="#" id="nav-settings">Settings</a></li>
           <li><a href="#" id="nav-help">Help</a></li>
         </ul>
       </nav>
@@ -145,8 +148,8 @@
           <input type="date" id="start-date" />
         </div>
         <div class="control-group">
-          <label for="duration" id="duration-label">Duration (weeks):</label>
-          <input type="number" id="duration" min="1" value="4" />
+          <label for="duration" id="duration-label">Duration (days):</label>
+          <input type="number" id="duration" min="1" value="30" />
         </div>
         <div class="control-group">
           <button id="generate-btn">Generate Plan</button>
@@ -155,6 +158,39 @@
 
       <div class="export-section">
         <button id="export-pdf-btn" class="export-btn">Export to PDF</button>
+      </div>
+
+      <div class="help-section hidden" id="help-section">
+        <button class="close-help" id="close-help">X</button>
+        <h2>Help & Guidelines</h2>
+        
+        <div class="help-item">
+          <h3>Getting Started</h3>
+          <p>1. Select your preferred savings frequency (daily, weekly, or monthly).</p>
+          <p>2. Set your savings target amount for each period.</p>
+          <p>3. Choose a start date and duration for your savings plan.</p>
+          <p>4. Click "Generate Plan" to create your personalized savings schedule.</p>
+        </div>
+        
+        <div class="help-item">
+          <h3>Tracking Your Savings</h3>
+          <p>1. Mark each period as "Saved" when you've deposited the amount.</p>
+          <p>2. The tracker will automatically calculate your cumulative savings.</p>
+          <p>3. Add notes for each period to record any important details.</p>
+        </div>
+        
+        <div class="help-item">
+          <h3>Setting Reminders</h3>
+          <p>1. Use the reminder section to set up savings alerts.</p>
+          <p>2. Choose a time and frequency for your reminders.</p>
+          <p>3. Click "Set Reminder" to save your preferences.</p>
+        </div>
+        
+        <div class="help-item">
+          <h3>Exporting Data</h3>
+          <p>1. Click "Export to PDF" to create a printable report of your savings.</p>
+          <p>2. The PDF will include your savings details and summary, with your name in the filename.</p>
+        </div>
       </div>
 
       <div class="table-container">
@@ -175,7 +211,51 @@
           </tbody>
         </table>
       </div>
+      
+      <!-- Footer for main app container (KEPT) -->
+      <footer>
+        <div class="footer-content">
+          <div class="footer-section">
+            <h3>About Savings Tracker</h3>
+            <p>Track your daily, weekly, or monthly savings goals with our easy-to-use tool. Achieve financial freedom one step at a time.</p>
+          </div>
+          <div class="footer-section">
+            <h3>Quick Links</h3>
+            <ul class="footer-links">
+              <li><a href="#" id="footer-summary"><i class="fas fa-chart-pie"></i> Summary</a></li>
+              <li><a href="#" id="footer-export"><i class="fas fa-file-export"></i> Export Data</a></li>
+              <li><a href="#" id="footer-help"><i class="fas fa-question-circle"></i> Help</a></li>
+              <li><a href="#" id="footer-privacy"><i class="fas fa-lock"></i> Privacy Policy</a></li>
+            </ul>
+          </div>
+          <div class="footer-section">
+            <h3>Stay Updated</h3>
+            <p>Subscribe to get tips on saving money and financial planning.</p>
+            <div class="footer-subscribe">
+              <input type="email" placeholder="Your email address">
+              <button>Subscribe</button>
+            </div>
+          </div>
+          <div class="footer-section">
+            <h3>Contact Us</h3>
+            <ul class="footer-links">
+              <li><a href="#"><i class="fas fa-envelope"></i> support@savingstracker.com</a></li>
+              <li><a href="#"><i class="fas fa-phone"></i> +251 910-2490-70</a></li>
+            </ul>
+            <div class="footer-social">
+              <a href="#"><i class="fab fa-facebook-f"></i></a>
+              <a href="#"><i class="fab fa-twitter"></i></a>
+              <a href="#"><i class="fab fa-instagram"></i></a>
+              <a href="#"><i class="fab fa-linkedin-in"></i></a>
+            </div>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>&copy; 2025 Savings Tracker. All rights reserved. Built ❤️ by Esrael Belay</p>
+        </div>
+      </footer>
     </div>
+    <div class="modal-overlay hidden" id="modal-overlay"></div>
     <script src="script.js"></script>
   </body>
 </html>
